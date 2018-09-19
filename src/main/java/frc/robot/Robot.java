@@ -7,18 +7,45 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 public class Robot extends IterativeRobot {
 
+    public static final int P = 0;
+    public static final int I = 0;
+    public static final int D = 0;
+
+    public static final int TALON_LEFT = 0;
+    public static final int TALON_RIGHT = 1;
+
+    public static final int JOYSTICK_DRIVER = 0;
+    public static final int JOYSTICK_LY = 0;
+    public static final int JOYSTICK_RX = 4;
+
+    WPI_TalonSRX leftTalon = new WPI_TalonSRX(TALON_LEFT);
+    WPI_TalonSRX rightTalon = new WPI_TalonSRX(TALON_RIGHT);
+
+    Joystick driver = new Joystick(JOYSTICK_DRIVER);
+
+    DifferentialDrive drive;
+
     @Override
     public void robotInit() {
-        
+        drive = new DifferentialDrive(leftTalon, rightTalon);
+
+        leftTalon.setInverted(true);
+        rightTalon.setInverted(false);
     }
+
+
     @Override
     public void robotPeriodic() {
+        double driveSpeed = driver.getRawAxis(0);
+        double driveTurn = driver.getRawAxis(4);
+        drive.arcadeDrive(driveSpeed, driveTurn);
     }
 
     @Override
@@ -28,7 +55,6 @@ public class Robot extends IterativeRobot {
 
     @Override
     public void autonomousPeriodic() {
-
     }
 
     @Override
