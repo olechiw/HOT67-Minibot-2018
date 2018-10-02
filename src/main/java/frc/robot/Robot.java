@@ -11,7 +11,6 @@ import java.util.function.BiFunction;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -24,8 +23,8 @@ public class Robot extends IterativeRobot {
     public static final int TALON_RIGHT = 0;
 
     public static final int JOYSTICK_DRIVER = 0;
-    public static final int JOYSTICK_LY = 4;
-    public static final int JOYSTICK_RX = 1;
+    public static final int JOYSTICK_LY = 1;
+    public static final int JOYSTICK_RX = 4;
 
 
     WPI_TalonSRX leftTalon = new WPI_TalonSRX(TALON_LEFT);
@@ -39,7 +38,7 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
         drive = new DifferentialDrive(leftTalon, rightTalon);
 
-        // Inverting left, may have to change
+        // Inverting may have been screwing things up
         /*
         leftTalon.setInverted(false);
         rightTalon.setInverted(true);
@@ -63,23 +62,15 @@ public class Robot extends IterativeRobot {
         };
 
         
-        // May have to invert driveturn
-        double driveSpeed = getInputWithDeadband.apply(driver.getRawAxis(1), .2);
-        double driveTurn = getInputWithDeadband.apply(driver.getRawAxis(4), .2);
-        /*
-        double driveTurn = driver.getRawAxis(JOYSTICK_LY);
-        double driveTurn = driver.getRawAxis(JOYSTICK_RX);
-        */
+        // May have to invert driveturn/drivespeed
+        double driveSpeed = getInputWithDeadband.apply(driver.getRawAxis(JOYSTICK_LY), .2);
+        double driveTurn = getInputWithDeadband.apply(driver.getRawAxis(JOYSTICK_RX), .2);
 
         SmartDashboard.putNumber("driveSpeed", driveSpeed);
         SmartDashboard.putNumber("driveTurn", driveTurn);
 
         
         drive.arcadeDrive(driveSpeed, driveTurn);
-        /*
-        leftTalon.set(ControlMode.PercentOutput, driveTurn);
-        rightTalon.set(ControlMode.PercentOutput, driveTurn);
-        */
     }
 
     @Override
