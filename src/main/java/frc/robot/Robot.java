@@ -1,65 +1,69 @@
+/*----------------------------------------------------------------------------*/
+/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
+/* Open Source Software - may be modified and shared by FRC teams. The code   */
+/* must be accompanied by the FIRST BSD license file in the root directory of */
+/* the project.                                                               */
+/*----------------------------------------------------------------------------*/
+
 package frc.robot;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.DemandType;
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.sensors.PigeonIMU;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
-    /** Hardware */
-    TalonSRX _leftMaster = new TalonSRX(13);
-    TalonSRX _rightMaster = new TalonSRX(0);
-    Joystick _gamepad = new Joystick(0);
+
+    public static final int JOYSTICK_DRIVER = 0;
+    public static final int JOYSTICK_LY = 1;
+    public static final int JOYSTICK_RX = 4;
+
+    Joystick driver = new Joystick(JOYSTICK_DRIVER);
+
+    DriveTrain driveTrain;
 
     @Override
     public void robotInit() {
-        /* Don't use this for now */
-    }
-    
-    @Override
-    public void teleopInit(){
-        /* Disable motor controllers */
-        _rightMaster.set(ControlMode.PercentOutput, 0);
-        _leftMaster.set(ControlMode.PercentOutput, 0);
-        
-        /* Set Neutral mode */
-        _leftMaster.setNeutralMode(NeutralMode.Brake);
-        _rightMaster.setNeutralMode(NeutralMode.Brake);
-        
-        /* Configure output direction */
-        _leftMaster.setInverted(false);
-        _rightMaster.setInverted(true);
-        
-        System.out.println("This is a basic arcade drive using Arbitrary Feed Forward.");
-    }
-    
-    @Override
-    public void teleopPeriodic() {        
-        /* Gamepad processing */
-        double forward = -1 * _gamepad.getY();
-        double turn = _gamepad.getRawAxis(4)/.5;        
-        forward = Deadband(forward);
-        turn = Deadband(turn);
-
-        /* Basic Arcade Drive using PercentOutput along with Arbitrary FeedForward supplied by turn */
-        _leftMaster.set(ControlMode.PercentOutput, forward, DemandType.ArbitraryFeedForward, +turn);
-        _rightMaster.set(ControlMode.PercentOutput, forward, DemandType.ArbitraryFeedForward, -turn);
+        driveTrain = new DriveTrain();
     }
 
-    /** Deadband 5 percent, used on the gamepad */
-    double Deadband(double value) {
-        /* Upper deadband */
-        if (value >= +0.05) 
-            return value;
-        
-        /* Lower deadband */
-        if (value <= -0.05)
-            return value;
-        
-        /* Outside deadband */
-        return 0;
+    @Override
+    public void autonomousInit() {
+        driveTrain.zeroSensors();
+        driveTrain.zeroTalons();
+        profileFinished = false;
+    }
+
+    boolean profileFinished = false;
+    @Override
+    public void autonomousPeriodic() {
+        if (!profileFinished)
+            profileFinished = driveTrain.FollowPath();
+        else
+            driveTrain.zeroTalons();
+    }
+
+    @Override
+    public void robotPeriodic() {
+        driveTrain.readSensors();
+
+        /* Add autonomous code here */
+
+        driveTrain.writeDashBoard();
+    }
+
+    @Override
+    public void teleopPeriodic() {
+        // May have to invert driveturn/drivespeed
+        driveTrain.arcadeDrive(driver.getRawAxis(JOYSTICK_RX), driver.getRawAxis(JOYSTICK_LY));
+    }
+
+    @Override
+    public void testPeriodic() {
     }
 }
