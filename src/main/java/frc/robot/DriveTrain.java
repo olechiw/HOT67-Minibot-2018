@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.RemoteFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
+import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 
@@ -26,8 +27,8 @@ import jaci.pathfinder.modifiers.TankModifier;
 public class DriveTrain {
 
     public static final int TALON_LEFT = 1;
-    public static final int TALON_PIGEON = 2;
     public static final int TALON_RIGHT = 4;
+    public static final int TALON_PIGEON = 2;
 
     WPI_TalonSRX leftTalon = new WPI_TalonSRX(TALON_LEFT);
     WPI_TalonSRX rightTalon = new WPI_TalonSRX(TALON_RIGHT);
@@ -112,7 +113,8 @@ public class DriveTrain {
     private void setupMotionProfiling() {
         //TODO: finish motor config
         /*
-        https://github.com/CrossTheRoadElec/Phoenix-Examples-Languages/blob/master/Java/MotionProfileAuxiliary%5BMotionProfileArc%5D/src/org/usfirst/frc/team217/robot/MotionProfileExample.java
+        https://github.com/CrossTheRoadElec/Phoenix-Examples-Languages/blob/master/Java/MotionProfileAuxiliary%5BMotionProfileArc%5D/src/org/usfirst/frc/team217/robot/Robot.java
+        3.8 FIRMWARE OR GREATER
         */
 
         // Motion Profile setup
