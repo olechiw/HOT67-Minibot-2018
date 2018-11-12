@@ -175,7 +175,7 @@ public class DriveTrain {
 
         for (int i = 0; i < path.length(); ++i) {
             Segment s = path.get(i);
-            point.position = s.position;
+            point.position = s.position * 4096 / 0.05; // Ticks per rev and wheel circumference to change from meters to ticks
             point.headingDeg = Pathfinder.r2d(s.heading);
             point.timeDur = TrajectoryDuration.valueOf((int) (s.dt * 1000)); // Takes ms
             point.profileSlotSelect0 = 0; // Position (MP Manual pg 8)
