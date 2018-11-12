@@ -89,11 +89,11 @@ public class DriveTrain {
         leftTalon.selectProfileSlot(0, 0);
         rightTalon.selectProfileSlot(0, 0);
 
-        leftTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0);
-        rightTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0);
+        leftTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 20);
+        rightTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 20);
 
-        leftTalon.setSelectedSensorPosition(0, 0, 0);
-        rightTalon.setSelectedSensorPosition(0, 0, 0);
+        leftTalon.setSelectedSensorPosition(0, 0, 20);
+        rightTalon.setSelectedSensorPosition(0, 0, 20);
 
         leftTalon.set(ControlMode.PercentOutput, 0.0);
         rightTalon.set(ControlMode.PercentOutput, 0.0);
@@ -102,8 +102,7 @@ public class DriveTrain {
     }
 
     class PeriodicRunnable implements Runnable {
-        public void run() {
-            leftTalon.processMotionProfileBuffer();
+        public void run() {        leftTalon.processMotionProfileBuffer();
             rightTalon.processMotionProfileBuffer();
         }
     }
@@ -162,7 +161,6 @@ public class DriveTrain {
         rightTalon.configAllowableClosedloopError(0, AllowableError.POS, 20);
         rightTalon.configAllowableClosedloopError(1, AllowableError.ANGLE, 20);
         MP_Notifier.startPeriodic(.01);
-        ;
     }
 
     /*
@@ -225,6 +223,8 @@ public class DriveTrain {
         SmartDashboard.putNumber("leftEncoder", leftEncoder);
         SmartDashboard.putNumber("rightEncoder", rightEncoder);
         SmartDashboard.putNumber("currentYaw", xyz_dps[0]);
+        SmartDashboard.putNumber("Sensor 1 Left", leftTalon.getSelectedSensorPosition(1));
+        SmartDashboard.putNumber("Sensor 1 Right", rightTalon.getSelectedSensorPosition(1));
     }
 
     public void zeroSensors() {
