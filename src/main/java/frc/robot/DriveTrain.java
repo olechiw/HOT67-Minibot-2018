@@ -1,5 +1,8 @@
 package frc.robot;
 
+import java.util.LinkedList;
+
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motion.MotionProfileStatus;
 import com.ctre.phoenix.motion.SetValueMotionProfile;
 import com.ctre.phoenix.motion.TrajectoryPoint;
@@ -44,8 +47,13 @@ public class DriveTrain {
      * Motion Profiling Constants
      */
 
-    // Control parameters
-    public static final double MAX_VELOCITY = 1;
+    // Control parameters, meters per seconds
+    public static final double MAX_VELOCITY = 1.0;
+    public static final double MAX_ACCEL = 2.0;
+    public static final double MAX_JERK = 60.0;
+    // Time step in seconds
+    public static final double TIME_STEP = .02;// 20 ms
+    public static final int TIMEOUT = 0; // 0 ms, dont even wait for response
 
     // TODO: CHECK UNITS
     public static final class AllowableError {
@@ -89,11 +97,11 @@ public class DriveTrain {
         leftTalon.selectProfileSlot(0, 0);
         rightTalon.selectProfileSlot(0, 0);
 
-        leftTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 20);
-        rightTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 20);
+        leftTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TIMEOUT);
+        rightTalon.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TIMEOUT);
 
-        leftTalon.setSelectedSensorPosition(0, 0, 20);
-        rightTalon.setSelectedSensorPosition(0, 0, 20);
+        leftTalon.setSelectedSensorPosition(0, 0, TIMEOUT);
+        rightTalon.setSelectedSensorPosition(0, 0, TIMEOUT);
 
         leftTalon.set(ControlMode.PercentOutput, 0.0);
         rightTalon.set(ControlMode.PercentOutput, 0.0);
@@ -102,7 +110,8 @@ public class DriveTrain {
     }
 
     class PeriodicRunnable implements Runnable {
-        public void run() {        leftTalon.processMotionProfileBuffer();
+        public void run() {        
+            leftTalon.processMotionProfileBuffer();
             rightTalon.processMotionProfileBuffer();
         }
     }
@@ -118,7 +127,7 @@ public class DriveTrain {
 
         // Motion Profile setup
         Trajectory.Config MP_Config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC,
-                Trajectory.Config.SAMPLES_FAST, 0.020, MAX_VELOCITY, 2.0, 60.0);
+                Trajectory.Config.SAMPLES_LOW, TIME_STEP, MAX_VELOCITY, MAX_ACCEL, MAX_JERK);
 
         Trajectory MP_Path = Pathfinder.generate(MP_Points, MP_Config);
 
@@ -128,38 +137,40 @@ public class DriveTrain {
         leftTrajectory = MP_TankModifier.getLeftTrajectory();
         rightTrajectory = MP_TankModifier.getRightTrajectory();
 
-        leftTalon.config_kP(0, LEFT_PIDF.P, 20);
-        leftTalon.config_kI(0, LEFT_PIDF.I, 20);
-        leftTalon.config_kD(0, LEFT_PIDF.D, 20);
-        leftTalon.config_kF(0, LEFT_PIDF.F, 20);
+        leftTalon.config_kP(0, LEFT_PIDF.P, TIMEOUT);
+        leftTalon.config_kI(0, LEFT_PIDF.I, TIMEOUT);
+        leftTalon.config_kD(0, LEFT_PIDF.D, TIMEOUT);
+        leftTalon.config_kF(0, LEFT_PIDF.F, TIMEOUT);
 
-        leftTalon.configRemoteFeedbackFilter(pigeon.getDeviceID(), RemoteSensorSource.GadgeteerPigeon_Yaw, 0, 20);
-        leftTalon.configSelectedFeedbackSensor(FeedbackDevice.RemoteSensor0, 1, 20);
-        leftTalon.config_kP(1, ANGLE_PID.P, 20);
-        leftTalon.config_kI(1, ANGLE_PID.I, 20);
-        leftTalon.config_kD(1, ANGLE_PID.D, 20);
+        leftTalon.configRemoteFeedbackFilter(pigeon.getDeviceID(), RemoteSensorSource.GadgeteerPigeon_Yaw, 0,
+                TIMEOUT);
+        leftTalon.configSelectedFeedbackSensor(FeedbackDevice.RemoteSensor0, 1, TIMEOUT);
+        leftTalon.config_kP(1, ANGLE_PID.P, TIMEOUT);
+        leftTalon.config_kI(1, ANGLE_PID.I, TIMEOUT);
+        leftTalon.config_kD(1, ANGLE_PID.D, TIMEOUT);
 
-        rightTalon.config_kP(0, RIGHT_PIDF.P, 20);
-        rightTalon.config_kI(0, RIGHT_PIDF.I, 20);
-        rightTalon.config_kD(0, RIGHT_PIDF.D, 20);
-        rightTalon.config_kF(0, RIGHT_PIDF.F, 20);
+        rightTalon.config_kP(0, RIGHT_PIDF.P, TIMEOUT);
+        rightTalon.config_kI(0, RIGHT_PIDF.I, TIMEOUT);
+        rightTalon.config_kD(0, RIGHT_PIDF.D, TIMEOUT);
+        rightTalon.config_kF(0, RIGHT_PIDF.F, TIMEOUT);
 
-        rightTalon.configRemoteFeedbackFilter(pigeon.getDeviceID(), RemoteSensorSource.GadgeteerPigeon_Yaw, 0, 20);
-        rightTalon.configSelectedFeedbackSensor(FeedbackDevice.RemoteSensor0, 1, 20);
-        rightTalon.config_kP(1, ANGLE_PID.P, 20);
-        rightTalon.config_kI(1, ANGLE_PID.I, 20);
-        rightTalon.config_kD(1, ANGLE_PID.D, 20);
+        rightTalon.configRemoteFeedbackFilter(pigeon.getDeviceID(), RemoteSensorSource.GadgeteerPigeon_Yaw, 0,
+                TIMEOUT);
+        rightTalon.configSelectedFeedbackSensor(FeedbackDevice.RemoteSensor0, 1, TIMEOUT);
+        rightTalon.config_kP(1, ANGLE_PID.P, TIMEOUT);
+        rightTalon.config_kI(1, ANGLE_PID.I, TIMEOUT);
+        rightTalon.config_kD(1, ANGLE_PID.D, TIMEOUT);
 
         fillTalon(leftTrajectory, leftTalon);
         fillTalon(rightTrajectory, rightTalon);
 
         // Twice as fast as profile - page 21 of MP manual
         leftTalon.changeMotionControlFramePeriod(10);
-        leftTalon.configAllowableClosedloopError(0, AllowableError.POS, 20);
-        leftTalon.configAllowableClosedloopError(1, AllowableError.ANGLE, 20);
+        leftTalon.configAllowableClosedloopError(0, AllowableError.POS, TIMEOUT);
+        leftTalon.configAllowableClosedloopError(1, AllowableError.ANGLE, TIMEOUT);
         rightTalon.changeMotionControlFramePeriod(10);
-        rightTalon.configAllowableClosedloopError(0, AllowableError.POS, 20);
-        rightTalon.configAllowableClosedloopError(1, AllowableError.ANGLE, 20);
+        rightTalon.configAllowableClosedloopError(0, AllowableError.POS, TIMEOUT);
+        rightTalon.configAllowableClosedloopError(1, AllowableError.ANGLE, TIMEOUT);
         MP_Notifier.startPeriodic(.01);
     }
 
@@ -171,9 +182,11 @@ public class DriveTrain {
 
         TrajectoryPoint point = new TrajectoryPoint();
 
+
         for (int i = 0; i < path.length(); ++i) {
             Segment s = path.get(i);
             point.position = s.position; // Ticks per rev and wheel circumference to change from meters to ticks
+            point.velocity = s.velocity; //TODO: Convert to per 100 ms
             point.headingDeg = Pathfinder.r2d(s.heading);
             point.timeDur = TrajectoryDuration.valueOf((int) (s.dt * 1000)); // Takes ms
             point.profileSlotSelect0 = 0; // Position (MP Manual pg 8)
@@ -185,7 +198,11 @@ public class DriveTrain {
             if ((i + 1) == path.length())
                 point.isLastPoint = true;
 
-            talon.pushMotionProfileTrajectory(point);
+            ErrorCode code = talon.pushMotionProfileTrajectory(point);
+            if (code == ErrorCode.BufferFull)
+            {
+                // Buffer full, fill the rest later
+            }
         }
     }
 
@@ -229,9 +246,9 @@ public class DriveTrain {
 
     public void zeroSensors() {
         leftTalon.setInverted(true);
-        leftTalon.setSelectedSensorPosition(0, 0, 20);
-        rightTalon.setSelectedSensorPosition(0, 0, 20);
-        pigeon.setYaw(0, 0);
+        leftTalon.setSelectedSensorPosition(0, 0, TIMEOUT);
+        rightTalon.setSelectedSensorPosition(0, 0, TIMEOUT);
+        pigeon.setYaw(0, TIMEOUT);
     }
 
     public void zeroTalons() {
