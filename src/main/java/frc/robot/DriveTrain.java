@@ -3,6 +3,7 @@ package frc.robot;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 
@@ -36,7 +37,9 @@ public class DriveTrain {
          */
 
         // Control parameters
-        public static final double MAX_VELOCITY = 1;
+        public static final double MAX_VELOCITY = 1.0;
+        public static final double MAX_ACCEL = 2;
+        public static final double MAX_JERK = 60.0;
 
         public static final class POS_PIDVA {
                 public static final double P = .05;
@@ -50,13 +53,14 @@ public class DriveTrain {
                 public static final double P = .015;
                 public static final double I = 0;
                 public static final double D = 0;
-
         }
 
         // Path
-        public static final Waypoint[] MP_Points = new Waypoint[] { new Waypoint(0, 0, Pathfinder.d2r(0)),
-                        new Waypoint(1, 1, Pathfinder.d2r(90)),
-                        new Waypoint(1.7, 1.7, Pathfinder.d2r(0)) };
+        // x = forward
+        // y = left
+        public static final Waypoint[] MP_Points = new Waypoint[] {
+                 new Waypoint(0, 0, Pathfinder.d2r(0)),
+                        new Waypoint(1, 0, Pathfinder.d2r(0))};
 
         // Controllers
         private EncoderFollower leftEncoderFollower;
@@ -78,13 +82,16 @@ public class DriveTrain {
                 leftTalon.set(ControlMode.PercentOutput, 0.0);
                 rightTalon.set(ControlMode.PercentOutput, 0.0);
 
+                leftTalon.setNeutralMode(NeutralMode.Brake);
+                rightTalon.setNeutralMode(NeutralMode.Brake);
+
                 setupMotionProfiling();
         }
 
         private void setupMotionProfiling() {
                 // Motion Profile setup
                 Trajectory.Config MP_Config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC,
-                                Trajectory.Config.SAMPLES_HIGH, 0.020, MAX_VELOCITY, 2.0, 60.0);
+                                Trajectory.Config.SAMPLES_HIGH, 0.020, MAX_VELOCITY, MAX_ACCEL, MAX_JERK);
 
                 Trajectory MP_Path = Pathfinder.generate(MP_Points, MP_Config);
 
@@ -94,16 +101,16 @@ public class DriveTrain {
                 leftEncoderFollower = new EncoderFollower(MP_TankModifier.getLeftTrajectory());
                 rightEncoderFollower = new EncoderFollower(MP_TankModifier.getRightTrajectory());
 
-                leftEncoderFollower.configureEncoder(0, 4096, 0.05);
-                rightEncoderFollower.configureEncoder(0, 4096, 0.05);
+                leftEncoderFollower.configureEncoder(0, 3600, 0.05436);
+                rightEncoderFollower.configureEncoder(0, 3600, 0.05436);
 
                 leftEncoderFollower.configurePIDVA(POS_PIDVA.P, POS_PIDVA.I, POS_PIDVA.D, POS_PIDVA.V, POS_PIDVA.A);
                 rightEncoderFollower.configurePIDVA(POS_PIDVA.P, POS_PIDVA.I, POS_PIDVA.D, POS_PIDVA.V, POS_PIDVA.A);
         }
 
         public boolean FollowPath() {
-                double l = leftEncoderFollower.calculate((int) leftEncoder);
-                double r = rightEncoderFollower.calculate((int) rightEncoder);
+                double l = -leftEncoderFollower.calculate((int) leftEncoder);
+                double r = -rightEncoderFollower.calculate((int) rightEncoder);
 
                 double heading = xyz_dps[0];
                 double desired_heading = Pathfinder.r2d(leftEncoderFollower.getHeading());

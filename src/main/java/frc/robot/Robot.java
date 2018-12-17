@@ -58,6 +58,12 @@ public class Robot extends IterativeRobot {
     }
 
     @Override
+    public void teleopInit()
+    {
+        driveTrain.zeroSensors();
+    }
+
+    @Override
     public void teleopPeriodic() {
         // May have to invert driveturn/drivespeed
         driveTrain.arcadeDrive(driver.getRawAxis(JOYSTICK_RX), driver.getRawAxis(JOYSTICK_LY));
