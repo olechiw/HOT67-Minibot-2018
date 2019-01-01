@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
 
+    public static final double ticksPerSecond = 27000;
+
     public static final int JOYSTICK_DRIVER = 0;
     public static final int JOYSTICK_LY = 1;
     public static final int JOYSTICK_RX = 4;

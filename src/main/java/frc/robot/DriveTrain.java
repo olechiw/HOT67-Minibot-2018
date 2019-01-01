@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Pathfinder;
 import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.Waypoint;
+import jaci.pathfinder.Trajectory.Segment;
 import jaci.pathfinder.followers.EncoderFollower;
 import jaci.pathfinder.modifiers.TankModifier;
 
@@ -42,10 +43,10 @@ public class DriveTrain {
         public static final double MAX_JERK = 60.0;
 
         public static final class POS_PIDVA {
-                public static final double P = .05;
+                public static final double P = .02;
                 public static final double I = 0;
                 public static final double D = 0;
-                public static final double V = .5; // Velocity feed forward
+                public static final double V = 1; // Velocity feed forward
                 public static final double A = 0; // Acceleration gain
         }
 
@@ -88,12 +89,12 @@ public class DriveTrain {
                 setupMotionProfiling();
         }
 
-        private void setupMotionProfiling() {
-                // Motion Profile setup
-                Trajectory.Config MP_Config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC,
-                                Trajectory.Config.SAMPLES_HIGH, 0.020, MAX_VELOCITY, MAX_ACCEL, MAX_JERK);
+        // Motion Profile setup
+        Trajectory.Config MP_Config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC,
+        Trajectory.Config.SAMPLES_HIGH, 0.020, MAX_VELOCITY, MAX_ACCEL, MAX_JERK);
 
-                Trajectory MP_Path = Pathfinder.generate(MP_Points, MP_Config);
+        Trajectory MP_Path = Pathfinder.generate(MP_Points, MP_Config);
+        private void setupMotionProfiling() {
 
                 double MP_Width = .36;
                 TankModifier MP_TankModifier = new TankModifier(MP_Path).modify(MP_Width);
@@ -108,7 +109,17 @@ public class DriveTrain {
                 rightEncoderFollower.configurePIDVA(POS_PIDVA.P, POS_PIDVA.I, POS_PIDVA.D, POS_PIDVA.V, POS_PIDVA.A);
         }
 
+        int i =0;
         public boolean FollowPath() {
+                if (i < MP_Path.segments.length)
+                {
+                        Segment s = MP_Path.segments[i];
+                        SmartDashboard.putNumber("targetPosition", s.position);
+                        SmartDashboard.putNumber("targetVelocity", s.velocity);
+                        SmartDashboard.putNumber("targetAcceleration", s.acceleration);
+                        SmartDashboard.putNumber("targetHeading" ,s.heading);
+                        ++i;
+                }
                 double l = -leftEncoderFollower.calculate((int) leftEncoder);
                 double r = -rightEncoderFollower.calculate((int) rightEncoder);
 
@@ -160,6 +171,7 @@ public class DriveTrain {
                 leftTalon.set(ControlMode.PercentOutput, y, DemandType.ArbitraryFeedForward, -x);
                 rightTalon.set(ControlMode.PercentOutput, y, DemandType.ArbitraryFeedForward, x);
         }
+
         public double deadband(double input, double deadband)
         {
                 if ((deadband > input) && (input > -deadband))
